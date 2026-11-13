@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Surya Inventory & Billing Management System</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- ======================================================== -->
+  <!-- LOGIN AUTHENTICATION SCREEN                              -->
+  <!-- ======================================================== -->
+  <div id="loginScreen" class="login-container">
+    <div class="login-card">
+      <div class="login-header">
+        <div class="login-icon">📦</div>
+        <h2>Surya Inventory & Billing</h2>
+        <p>Please enter your credentials to access your dashboard.</p>
+      </div>
+
+      <form id="loginForm" autocomplete="off">
+        <div id="loginError" class="login-error-msg hidden">
+          ⚠️ Invalid username or password. Please try again.
+        </div>
+
+        <div class="form-group">
+          <label for="loginUsername">Username</label>
+          <input
+            type="text"
+            id="loginUsername"
+            placeholder="Enter username (e.g. admin)"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="loginPassword">Password</label>
+          <div class="password-input-wrapper">
+            <input
+              type="password"
+              id="loginPassword"
+              placeholder="Enter password"
+              required
+            />
+            <button
+              type="button"
+              id="togglePasswordBtn"
+              class="toggle-password-btn"
+              title="Show/Hide Password"
+            >
+              👁️
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" id="loginSubmitBtn" class="btn btn-primary full-width mt-3">
+          🔐 Sign In
+        </button>
+
+        <div class="login-hint">
+          💡 <strong>Default Demo Credentials:</strong><br />
+          Username: <code>admin</code> | Password: <code>password123</code>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MAIN APPLICATION DASHBOARD (SECURED)                     -->
+  <!-- ======================================================== -->
+  <div class="container hidden" id="appDashboard">
+    <!-- Header Section -->
+    <header class="header">
+      <div class="header-top-bar">
+        <div class="user-status-pill">
+          <span class="user-avatar">👤</span>
+          <span class="user-greeting">Logged in: <strong id="loggedUserDisplay">admin</strong></span>
+        </div>
+        <button id="logoutBtn" class="btn btn-logout" title="Sign out of your account">
+          🚪 Logout
+        </button>
+      </div>
+      <h1>📦 Surya Inventory & Billing System</h1>
+      <p>Manage product stock, create customer bills, and view sales history.</p>
+    </header>
+
+    <!-- Top Navigation Tabs -->
+    <nav class="nav-tabs">
+      <button class="tab-btn active" data-tab="inventoryTab" id="tabInventoryBtn">
+        📦 Inventory Management
+      </button>
+      <button class="tab-btn" data-tab="billingTab" id="tabBillingBtn">
+        🧾 New Bill Section (POS)
+      </button>
+      <button class="tab-btn" data-tab="historyTab" id="tabHistoryBtn">
+        📜 Bill History
+      </button>
+    </nav>
+
+    <!-- ======================================================== -->
+    <!-- TAB 1: INVENTORY MANAGEMENT                              -->
+    <!-- ======================================================== -->
+    <div id="inventoryTab" class="tab-content active">
+      <!-- Overview Stats Cards -->
+      <section class="stats-grid">
+        <div class="stat-card">
+          <span class="stat-icon">🏷️</span>
+          <div>
+            <h3 id="statTotalProducts">0</h3>
+            <p>Total Products</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <span class="stat-icon">📦</span>
+          <div>
+            <h3 id="statTotalStock">0</h3>
+            <p>Items in Stock</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <span class="stat-icon">💰</span>
+          <div>
+            <h3 id="statTotalValue">₹0.00</h3>
+            <p>Total Inventory Value</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Main Inventory Layout -->
+      <main class="content-grid">
+        <!-- Left Column: Add / Edit Product Form -->
+        <section class="card form-card">
+          <h2 id="formTitle">Add New Product</h2>
+          <form id="productForm">
+            <input type="hidden" id="editProductId" value="" />
+
+            <div class="form-group">
+              <label for="productName">Product Name</label>
+              <input
+                type="text"
+                id="productName"
+                placeholder="e.g., Wireless Mouse"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="productPrice">Price (₹)</label>
+              <input
+                type="number"
+                id="productPrice"
+                placeholder="0.00"
+                step="0.01"
+                min="0"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="productStock">Stock Quantity</label>
+              <input
+                type="number"
+                id="productStock"
+                placeholder="0"
+                min="0"
+                step="1"
+                required
+              />
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" id="submitBtn" class="btn btn-primary">
+                + Add Product
+              </button>
+              <button
+                type="button"
+                id="cancelBtn"
+                class="btn btn-secondary hidden"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </section>
+
+        <!-- Right Column: Product Table & Search -->
+        <section class="card table-card">
+          <div class="table-header">
+            <h2>Product Inventory</h2>
+            <!-- Inventory Search Option -->
+            <div class="search-box">
+              <span class="search-icon">🔍</span>
+              <input
+                type="text"
+                id="searchInput"
+                placeholder="Search product name..."
+              />
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Product Name</th>
+                  <th>Price</th>
+                  <th>Stock</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="productTableBody">
+                <!-- Dynamically populated by JavaScript -->
+              </tbody>
+            </table>
+
+            <!-- Empty State message -->
+            <div id="noResults" class="empty-state hidden">
+              <p>No products found matching your search.</p>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- TAB 2: NEW BILL (BILLING SECTION)                        -->
+    <!-- ======================================================== -->
+    <div id="billingTab" class="tab-content hidden">
+      <div class="billing-grid">
+        <!-- Left Column: Product Selection for Bill -->
+        <section class="card">
+          <h2>Select Products</h2>
+          <p class="section-desc">Search your inventory and select items to add to the customer's bill.</p>
+
+          <div class="form-group">
+            <label for="billingProductSearch">Search Inventory</label>
+            <div class="search-box full-width">
+              <span class="search-icon">🔍</span>
+              <input
+                type="text"
+                id="billingProductSearch"
+                placeholder="Type product name to filter list..."
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="billingProductSelect">Choose Product</label>
+            <select id="billingProductSelect" class="form-select">
+              <!-- Dynamically populated -->
+            </select>
+          </div>
+
+          <!-- Product Details Preview -->
+          <div id="selectedProductInfo" class="info-callout">
+            <div class="info-row">
+              <span>Unit Price:</span>
+              <strong id="previewUnitPrice">₹0.00</strong>
+            </div>
+            <div class="info-row">
+              <span>Available Stock:</span>
+              <strong id="previewAvailableStock">0 units</strong>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="billingQuantity">Quantity to Bill</label>
+            <input
+              type="number"
+              id="billingQuantity"
+              value="1"
+              min="1"
+              step="1"
+            />
+          </div>
+
+          <button type="button" id="addToBillBtn" class="btn btn-primary full-width">
+            ➕ Add to Bill
+          </button>
+
+          <div class="note-box">
+            💡 <strong>Note:</strong> Adding products here does <em>not</em> reduce stock yet. Stock is only deducted once you click <strong>Complete Bill</strong>.
+          </div>
+        </section>
+
+        <!-- Right Column: Current Bill Summary & Items -->
+        <section class="card">
+          <div class="table-header">
+            <h2>Current Bill</h2>
+            <span class="badge badge-in-stock" id="currentBillItemCount">0 Items</span>
+          </div>
+
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Price</th>
+                  <th>Qty</th>
+                  <th>Total</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="billItemsTableBody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+
+            <div id="emptyBillMessage" class="empty-state">
+              <p>No products added to the bill yet. Select a product on the left to start.</p>
+            </div>
+          </div>
+
+          <!-- Customer Details Input (for WhatsApp Receipt) -->
+          <div class="customer-info-box">
+            <h3>👤 Customer Details (for WhatsApp Receipt)</h3>
+            <div class="form-row">
+              <div class="form-group flex-1">
+                <label for="customerName">Customer Name <span class="text-muted">(Optional)</span></label>
+                <input
+                  type="text"
+                  id="customerName"
+                  placeholder="e.g., Ramesh Kumar"
+                />
+              </div>
+              <div class="form-group flex-1">
+                <label for="customerPhone">Customer WhatsApp Number</label>
+                <input
+                  type="tel"
+                  id="customerPhone"
+                  placeholder="10-digit mobile number"
+                  maxlength="10"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Grand Total Calculation Box -->
+          <div class="bill-summary-card">
+            <div class="summary-line">
+              <span>Total Items:</span>
+              <strong id="billTotalQty">0</strong>
+            </div>
+            <div class="summary-line grand-total-line">
+              <span>Grand Total:</span>
+              <strong id="billGrandTotal">₹0.00</strong>
+            </div>
+
+            <div class="form-actions mt-3">
+              <button
+                type="button"
+                id="completeBillBtn"
+                class="btn btn-success full-width"
+                disabled
+              >
+                ✅ Complete Bill & Deduct Stock
+              </button>
+              <button
+                type="button"
+                id="clearBillBtn"
+                class="btn btn-secondary"
+                title="Clear all items in current bill"
+              >
+                Clear
+              </button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- TAB 3: BILL HISTORY                                      -->
+    <!-- ======================================================== -->
+    <div id="historyTab" class="tab-content hidden">
+      <section class="card">
+        <div class="table-header">
+          <div>
+            <h2>Completed Bills History</h2>
+            <p class="section-desc">View past transactions. Viewing past bills will never modify inventory stock.</p>
+          </div>
+          <!-- History Search -->
+          <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input
+              type="text"
+              id="historySearchInput"
+              placeholder="Search by Bill #..."
+            />
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Bill #</th>
+                <th>Date & Time</th>
+                <th>Customer</th>
+                <th>Total Items</th>
+                <th>Grand Total</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="billHistoryTableBody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+
+          <div id="emptyHistoryMessage" class="empty-state hidden">
+            <p>No completed bills found.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Storage Notice Banner -->
+    <footer class="footer-notice">
+      <p>
+        🔒 <strong>Local Storage Notice:</strong> Products and bills are stored locally in your web browser. 
+        <code>localStorage</code> is fast and convenient for single-browser use, but it is <em>not</em> a shared, synchronized database across multiple computers, users, or devices.
+      </p>
+    </footer>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL: RECEIPT & PRINT VIEW                              -->
+  <!-- ======================================================== -->
+  <div id="receiptModal" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <div class="receipt-actions no-print">
+        <button id="whatsappBillBtn" class="btn btn-whatsapp">📲 Share on WhatsApp</button>
+        <button id="printBillBtn" class="btn btn-primary">🖨️ Print Receipt</button>
+        <button id="closeReceiptBtn" class="btn btn-secondary">✖ Close</button>
+      </div>
+
+      <!-- Printable Area -->
+      <div id="receiptPrintArea" class="receipt-paper">
+        <div class="receipt-header">
+          <h2>SURYA INVENTORY & BILLING</h2>
+          <p>Inventory & Retail Billing</p>
+          <div class="receipt-divider"></div>
+        </div>
+
+        <div class="receipt-meta">
+          <div><strong>Bill No:</strong> <span id="receiptBillNo"></span></div>
+          <div><strong>Date:</strong> <span id="receiptDate"></span></div>
+          <div><strong>Time:</strong> <span id="receiptTime"></span></div>
+          <div id="receiptCustomerMeta"><strong>Customer:</strong> <span id="receiptCustomerName">Valued Customer</span></div>
+        </div>
+
+        <table class="receipt-table">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th class="text-right">Price</th>
+              <th class="text-center">Qty</th>
+              <th class="text-right">Total</th>
+            </tr>
+          </thead>
+          <tbody id="receiptTableBody">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+
+        <div class="receipt-divider"></div>
+
+        <div class="receipt-totals">
+          <div class="total-row">
+            <span>Total Items:</span>
+            <span id="receiptTotalItems">0</span>
+          </div>
+          <div class="total-row grand-total">
+            <span>Grand Total:</span>
+            <span id="receiptGrandTotal">₹0.00</span>
+          </div>
+        </div>
+
+        <div class="receipt-footer">
+          <p>Thank you for shopping with us!</p>
+          <p>Please keep this receipt for your records.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
